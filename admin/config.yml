@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: uptdairminumkotasorong/aduan-airminum-sorong
+  repo: uptdairminumkotasorong-commits/layanan-airminum-sorong
   branch: main
 media_folder: "assets/images"
 public_folder: "/assets/images"
