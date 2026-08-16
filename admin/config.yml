@@ -7,9 +7,15 @@ public_folder: "/assets/images"
 collections:
   - name: "berita"
     label: "Berita"
-    folder: "content/berita"
-    create: true
-    fields:
-      - {label: "Judul", name: "title", widget: "string"}
-      - {label: "Isi", name: "body", widget: "markdown"}
-      - {label: "Tanggal", name: "date", widget: "datetime"}
+    files:
+      - name: "data_berita"
+        label: "Daftar Berita"
+        file: "data/berita.json"
+        fields:
+          - name: "items"
+            label: "Daftar Berita"
+            widget: "list"
+            fields:
+              - {label: "Judul", name: "title", widget: "string"}
+              - {label: "Tanggal", name: "date", widget: "datetime"}
+              - {label: "Isi Berita", name: "body", widget: "text"}
