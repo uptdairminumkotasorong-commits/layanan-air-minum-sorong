@@ -1,17 +1,14 @@
 backend:
   name: git-gateway
   branch: main
-
-media_folder: "images"
-public_folder: "/images"
-
+media_folder: "assets/images"
+public_folder: "/assets/images"
 collections:
   - name: "berita"
-    label: "Berita & Pengumuman"
+    label: "Berita"
     folder: "content/berita"
     create: true
     fields:
-      - {label: "Judul Berita", name: "title", widget: "string"}
+      - {label: "Judul", name: "title", widget: "string"}
+      - {label: "Isi", name: "body", widget: "markdown"}
       - {label: "Tanggal", name: "date", widget: "datetime"}
-      - {label: "Kategori", name: "category", widget: "string"}
-      - {label: "Isi Pengumuman", name: "body", widget: "markdown"}
