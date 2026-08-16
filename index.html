@@ -212,6 +212,45 @@
                     </div>
                 </div>
             </div>
+            <!-- Bagian tempat daftar berita akan muncul secara otomatis -->
+<div id="wadah-berita">
+  <p>Memuat berita...</p>
+</div>
+
+<!-- Skrip JavaScript untuk mengambil data dari file berita.json -->
+<script>
+  fetch('/data/berita.json')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Belum ada berita yang dipublikasikan.');
+      }
+      return response.json();
+    })
+    .then(data => {
+      const container = document.getElementById('wadah-berita');
+      container.innerHTML = ''; // Hapus teks "Memuat berita..."
+      
+      if (!data.items || data.items.length === 0) {
+        container.innerHTML = '<p>Belum ada berita tersedia.</p>';
+        return;
+      }
+
+      data.items.forEach(berita => {
+        container.innerHTML += `
+          <div class="card-berita" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <h3>${berita.title}</h3>
+            <small style="color: gray;">${berita.date ? new Date(berita.date).toLocaleDateString('id-ID') : ''}</small>
+            <p>${berita.body}</p>
+          </div>
+        `;
+      });
+    })
+    .catch(err => {
+      document.getElementById('wadah-berita').innerHTML = '<p>Belum ada berita yang ditambahkan melalui CMS.</p>';
+      console.log(err);
+    });
+</script>
+
 
             <!-- Ringkasan Statistik Laporan -->
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
