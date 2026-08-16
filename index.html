@@ -4,43 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Layanan Informasi & Aduan Air Minum</title>
-    <!-- Tailwind CSS untuk Desain yang Rapi dan Responsif -->
+    <!-- Tailwind CSS untuk Desain Responsif & Modern -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
 
-    <!-- Header / Navigasi Website -->
+    <!-- Header / Navigasi Utama -->
     <header class="bg-blue-600 text-white shadow-md">
-        <div class="max-w-5xl mx-auto px-4 py-6 flex flex-col sm:flex-row justify-between items-center">
-            <h1 class="text-2xl font-bold tracking-wide">💧 Aduan & Layanan Air Minum</h1>
-            <nav class="mt-4 sm:mt-0 flex gap-4">
-                <a href="/" class="hover:underline font-medium">Beranda</a>
-                <a href="/admin/" target="_blank" class="bg-white text-blue-600 px-3 py-1 rounded shadow text-sm font-semibold hover:bg-blue-50">Admin CMS</a>
+        <div class="max-w-6xl mx-auto px-4 py-4 sm:py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🚰</span>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">UPTD Air Minum</h1>
+                    <p class="text-xs sm:text-sm text-blue-100">Portal Informasi & Layanan Pengaduan Resmi</p>
+                </div>
+            </div>
+            <nav class="flex items-center gap-3">
+                <a href="/" class="px-3 py-1.5 rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors">Beranda</a>
+                <a href="/admin/" target="_blank" class="bg-white text-blue-600 px-4 py-1.5 rounded-lg shadow-sm text-sm font-semibold hover:bg-blue-50 transition-colors">Login Admin</a>
             </nav>
         </div>
     </header>
 
     <!-- Konten Utama -->
-    <main class="max-w-5xl mx-auto px-4 py-8">
+    <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow">
         
-        <!-- Bagian Sambutan -->
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-sm mb-8 border border-slate-100">
-            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2">Selamat Datang di Portal Layanan Air Minum</h2>
-            <p class="text-slate-600 leading-relaxed">
-                Platform informasi resmi dan pusat pengaduan gangguan layanan air bersih untuk masyarakat. 
-                Silakan pantau pengumuman dan berita terbaru di bawah ini.
-            </p>
+        <!-- Bagian Hero / Banner Sambutan -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-10 mb-10 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="space-y-4 max-w-2xl">
+                <span class="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Layanan Publik</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Layanan Air Bersih Cepat & Transparan</h2>
+                <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
+                    Selamat datang di portal resmi penanganan aduan dan pusat informasi layanan air minum. 
+                    Pantau informasi pengumuman, perbaikan pipa, dan jadwal gangguan melalui berita terbaru di bawah ini.
+                </p>
+            </div>
+            <div class="bg-blue-50 border border-blue-100 p-6 rounded-xl text-center w-full md:w-auto min-w-[240px]">
+                <p class="text-xs text-blue-600 font-semibold uppercase">Butuh Bantuan Cepat?</p>
+                <p class="text-lg font-bold text-slate-900 mt-1">Layanan Pengaduan</p>
+                <a href="/admin/" class="mt-3 inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">Buat Laporan Baru</a>
+            </div>
         </section>
 
-        <!-- Bagian Daftar Berita (Otomatis dari Decap CMS) -->
+        <!-- Bagian Daftar Berita & Pengumuman -->
         <section>
-            <h3 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 pb-2 border-b border-slate-200">📢 Berita & Pengumuman Terbaru</h3>
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <span>📢</span> Berita & Pengumuman Terbaru
+                </h3>
+            </div>
             
-            <!-- Tempat Berita Dimuat -->
-            <div id="wadah-berita" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Status Loading Default -->
-                <div class="col-span-full text-center py-8 text-slate-400">
-                    Memuat daftar berita...
+            <!-- Elemen Wadah Tempat Berita Dimuat Otomatis dari CMS -->
+            <div id="wadah-berita" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Status Tampilan Loading Awal -->
+                <div class="col-span-full bg-white p-8 rounded-xl shadow-sm border border-slate-100 text-center text-slate-400">
+                    Memuat daftar berita terbaru...
                 </div>
             </div>
         </section>
@@ -48,11 +66,14 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-slate-800 text-slate-400 py-6 mt-12 text-center text-sm">
-        <p>&copy; 2026 UPTD Air Minum. Seluruh Hak Cipta Dilindungi.</p>
+    <footer class="bg-slate-900 text-slate-400 py-8 mt-16">
+        <div class="max-w-6xl mx-auto px-4 text-center text-sm space-y-2">
+            <p>&copy; 2026 UPTD Air Minum. Seluruh Hak Cipta Dilindungi.</p>
+            <p class="text-xs text-slate-500">Situs Resmi Pengelolaan Data Layanan dan Pengaduan Masyarakat.</p>
+        </div>
     </footer>
 
-    <!-- Skrip JavaScript untuk Memuat Data Berita dari JSON -->
+    <!-- Skrip JavaScript Pintar untuk Menarik Data Berita Decap CMS -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             fetch('/data/berita.json')
@@ -64,16 +85,22 @@
                 })
                 .then(data => {
                     const container = document.getElementById('wadah-berita');
-                    container.innerHTML = ''; // Bersihkan teks loading
+                    container.innerHTML = ''; // Bersihkan status loading
 
                     if (!data.items || data.items.length === 0) {
-                        container.innerHTML = '<div class="col-span-full bg-white p-6 rounded-lg shadow-sm text-center text-slate-500">Belum ada berita atau pengumuman yang dipublikasikan.</div>';
+                        container.innerHTML = `
+                            <div class="col-span-full bg-white p-8 rounded-xl shadow-sm border border-slate-100 text-center text-slate-500">
+                                <p class="font-medium">Belum ada berita atau pengumuman yang dipublikasikan.</p>
+                                <p class="text-xs text-slate-400 mt-1">Silakan tambahkan berita melalui menu Admin CMS.</p>
+                            </div>
+                        `;
                         return;
                     }
 
-                    // Urutkan berita dari yang terbaru (jika ada tanggal)
+                    // Urutkan berita dari yang terbaru berdasarkan tanggal
                     const sortedItems = data.items.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+                    // Tampilkan setiap berita ke dalam kartu web yang rapi
                     sortedItems.forEach(berita => {
                         let tanggalFormat = '';
                         if (berita.date) {
@@ -84,12 +111,15 @@
                         container.innerHTML += `
                             <article class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
                                 <div>
-                                    <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-wider">${tanggalFormat || 'Pengumuman'}</span>
-                                    <h4 class="text-lg font-bold text-slate-900 mt-3 mb-2 leading-snug">${berita.title}</h4>
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-wider">${tanggalFormat || 'Pengumuman'}</span>
+                                    </div>
+                                    <h4 class="text-lg font-bold text-slate-900 mb-2 leading-snug">${berita.title}</h4>
                                     <p class="text-slate-600 text-sm leading-relaxed line-clamp-3">${berita.body}</p>
                                 </div>
-                                <div class="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400">
-                                    Dipublikasikan via Admin CMS
+                                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                                    <span>UPTD Air Minum</span>
+                                    <span class="text-blue-600 font-medium">Resmi</span>
                                 </div>
                             </article>
                         `;
@@ -97,8 +127,13 @@
                 })
                 .catch(err => {
                     const container = document.getElementById('wadah-berita');
-                    container.innerHTML = '<div class="col-span-full bg-white p-6 rounded-lg shadow-sm text-center text-slate-500">Belum ada berita yang ditambahkan. Silakan buat berita melalui menu Admin CMS.</div>';
-                    console.error('Info:', err);
+                    container.innerHTML = `
+                        <div class="col-span-full bg-white p-8 rounded-xl shadow-sm border border-slate-100 text-center text-slate-500">
+                            <p class="font-medium">Belum ada berita yang ditambahkan.</p>
+                            <p class="text-xs text-slate-400 mt-1">Silakan buat berita baru melalui panel Admin CMS.</p>
+                        </div>
+                    `;
+                    console.log('Info CMS:', err);
                 });
         });
     </script>
