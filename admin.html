@@ -25,7 +25,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight">Panel Admin PDAM</h1>
-                    <p class="text-xs text-slate-400">Sistem Pengelolaan Pengaduan</p>
+                    <p class="text-xs text-slate-400">Sistem Pengelolaan Pengaduan & Informasi</p>
                 </div>
             </div>
             <div>
@@ -37,7 +37,7 @@
     </header>
 
     <!-- Konten Utama Admin -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6">
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
 
         <!-- Bagian Form Login Admin -->
         <section id="loginSection" class="max-w-md mx-auto my-12">
@@ -70,8 +70,8 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100 gap-4">
                 <div>
                     <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Sesi Admin Aktif</span>
-                    <h2 class="text-xl font-bold text-slate-800 mt-1">Dashboard Pengelolaan Pengaduan</h2>
-                    <p class="text-xs text-slate-500">Kelola status laporan dan tanggapi keluhan pelanggan air minum.</p>
+                    <h2 class="text-xl font-bold text-slate-800 mt-1">Dashboard Pengelolaan Sistem</h2>
+                    <p class="text-xs text-slate-500">Kelola status laporan pengaduan dan publikasikan pengumuman untuk warga.</p>
                 </div>
                 <button onclick="handleAdminLogout()" class="bg-rose-50 text-rose-600 hover:bg-rose-100 font-semibold px-4 py-2 rounded-xl text-xs transition border border-rose-200">
                     <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Keluar
@@ -98,10 +98,10 @@
                 </div>
             </div>
 
-            <!-- Tabel Manajemen -->
+            <!-- TABEL 1: MANAJEMEN PENGADUAN WARGA -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                    <h3 class="font-bold text-slate-800 text-sm">Daftar Seluruh Laporan Masuk</h3>
+                    <h3 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-list-check text-blue-600 mr-2"></i> Daftar Seluruh Laporan Pengaduan Masuk</h3>
                     <button onclick="loadAdminDashboard()" class="text-xs text-blue-600 hover:underline"><i class="fa-solid fa-rotate mr-1"></i> Refresh Data</button>
                 </div>
                 <div class="overflow-x-auto">
@@ -116,6 +116,44 @@
                             </tr>
                         </thead>
                         <tbody id="adminTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TABEL 2: KELOLA BERITA & PENGUMUMAN WARGA -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center">
+                    <i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i> Kelola Berita & Pengumuman Warga
+                </h3>
+                
+                <!-- Form Tambah Berita -->
+                <form onsubmit="handleAddNews(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pb-6 border-b border-slate-100">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Judul Pengumuman</label>
+                        <input type="text" id="newsTitle" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Perbaikan Pipa KM 10">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Isi Berita / Info</label>
+                        <input type="text" id="newsContent" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jelaskan secara singkat...">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl transition text-sm shadow-md">
+                            <i class="fa-solid fa-plus mr-1"></i> Publikasikan Berita
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Tabel Daftar Berita Aktif -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs uppercase font-semibold">
+                                <th class="p-3">Tanggal</th>
+                                <th class="p-3">Judul & Isi Berita</th>
+                                <th class="p-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminNewsTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
@@ -138,8 +176,9 @@
         <p>&copy; 2026 Admin Panel - Pengaduan Air Minum Kota Sorong.</p>
     </footer>
 
-    <!-- Logika Khusus Admin -->
+    <!-- Logika Terpadu Admin (Pengaduan & Berita) -->
     <script>
+        // --- DATA PENGADUAN ---
         function getStoredComplaints() {
             const data = localStorage.getItem('sorong_water_complaints');
             return data ? JSON.parse(data) : [];
@@ -149,6 +188,24 @@
             localStorage.setItem('sorong_water_complaints', JSON.stringify(data));
         }
 
+        // --- DATA BERITA ---
+        function getStoredNews() {
+            const data = localStorage.getItem('sorong_water_news');
+            const defaultNews = [
+                { id: 1, title: "Jadwal Pemeliharaan Pompa", content: "Distribusi air wilayah Sorong Timur akan dikurangi sementara pada hari Rabu.", date: "17 Agustus 2026" }
+            ];
+            if (!data) {
+                localStorage.setItem('sorong_water_news', JSON.stringify(defaultNews));
+                return defaultNews;
+            }
+            return JSON.parse(data);
+        }
+
+        function saveNews(data) {
+            localStorage.setItem('sorong_water_news', JSON.stringify(data));
+        }
+
+        // --- MODAL KUSTOM ---
         function showModal(title, message, isSuccess = true) {
             const modal = document.getElementById('customModal');
             document.getElementById('modalTitle').innerText = title;
@@ -171,6 +228,7 @@
             document.getElementById('customModal').classList.add('hidden');
         }
 
+        // --- SESI LOGIN ADMIN ---
         function checkSession() {
             const isLoggedIn = localStorage.getItem('sorong_admin_logged') === 'true';
             const loginSection = document.getElementById('loginSection');
@@ -180,6 +238,7 @@
                 loginSection.classList.add('hidden');
                 dashboardSection.classList.remove('hidden');
                 loadAdminDashboard();
+                loadAdminNews();
             } else {
                 loginSection.classList.remove('hidden');
                 dashboardSection.classList.add('hidden');
@@ -205,6 +264,7 @@
             checkSession();
         }
 
+        // --- MANAJEMEN DASHBOARD PENGADUAN ---
         function loadAdminDashboard() {
             const complaints = getStoredComplaints();
             
@@ -215,7 +275,7 @@
 
             const tbody = document.getElementById('adminTableBody');
             if (complaints.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada data laporan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada data laporan pengaduan.</td></tr>`;
                 return;
             }
 
@@ -271,9 +331,65 @@
             }
         }
 
+        // --- MANAJEMEN BERITA / PENGUMUMAN ---
+        function handleAddNews(event) {
+            event.preventDefault();
+            const title = document.getElementById('newsTitle').value;
+            const content = document.getElementById('newsContent').value;
+
+            const newsList = getStoredNews();
+            newsList.unshift({
+                id: Date.now(),
+                title,
+                content,
+                date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+            });
+
+            saveNews(newsList);
+            document.getElementById('newsTitle').value = '';
+            document.getElementById('newsContent').value = '';
+            loadAdminNews();
+            showModal("Berhasil!", "Berita atau pengumuman berhasil dipublikasikan.");
+        }
+
+        function loadAdminNews() {
+            const newsList = getStoredNews();
+            const tbody = document.getElementById('adminNewsTableBody');
+            
+            if (newsList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400">Belum ada berita yang dipublikasikan.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = newsList.map(item => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-3 text-xs text-slate-500 whitespace-nowrap">${item.date}</td>
+                    <td class="p-3">
+                        <span class="font-bold text-slate-800 block">${item.title}</span>
+                        <span class="text-xs text-slate-600">${item.content}</span>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteNews(${item.id})" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-xs font-medium" title="Hapus Berita">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteNews(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus pengumuman ini?")) {
+                let newsList = getStoredNews();
+                newsList = newsList.filter(n => n.id !== id);
+                saveNews(newsList);
+                loadAdminNews();
+            }
+        }
+
         window.onload = function() {
             checkSession();
         };
     </script>
 </body>
 </html>
+
