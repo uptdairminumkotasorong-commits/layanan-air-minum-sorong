@@ -85,16 +85,16 @@
                     <p id="statTotal" class="text-2xl font-bold text-slate-800 mt-1">0</p>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-                    <p class="text-xs text-amber-600 font-medium">Menunggu (Pending)</p>
-                    <p id="statPending" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+                    <p class="text-xs text-amber-600 font-medium">Menunggu Verifikasi</p>
+                    <p id="statVerifikasi" class="text-2xl font-bold text-amber-600 mt-1">0</p>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-                    <p class="text-xs text-blue-600 font-medium">Sedang Diproses</p>
+                    <p class="text-xs text-indigo-600 font-medium">Penugasan Tim</p>
+                    <p id="statTim" class="text-2xl font-bold text-indigo-600 mt-1">0</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <p class="text-xs text-blue-600 font-medium">Proses</p>
                     <p id="statProcess" class="text-2xl font-bold text-blue-600 mt-1">0</p>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-                    <p class="text-xs text-emerald-600 font-medium">Selesai</p>
-                    <p id="statDone" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
                 </div>
             </div>
 
@@ -250,7 +250,7 @@
             const user = document.getElementById('adminUser').value;
             const pass = document.getElementById('adminPass').value;
 
-            // Kredensial Admin (Dapat diubah sesuai keinginan)
+            // Kredensial Admin
             if (user === 'admin' && pass === 'sorongjaya2026') {
                 localStorage.setItem('sorong_admin_logged', 'true');
                 checkSession();
@@ -269,9 +269,9 @@
             const complaints = getStoredComplaints();
             
             document.getElementById('statTotal').innerText = complaints.length;
-            document.getElementById('statPending').innerText = complaints.filter(c => c.status === 'Pending').length;
+            document.getElementById('statVerifikasi').innerText = complaints.filter(c => c.status === 'Menunggu Verifikasi').length;
+            document.getElementById('statTim').innerText = complaints.filter(c => c.status === 'Penugasan Tim').length;
             document.getElementById('statProcess').innerText = complaints.filter(c => c.status === 'Proses').length;
-            document.getElementById('statDone').innerText = complaints.filter(c => c.status === 'Selesai').length;
 
             const tbody = document.getElementById('adminTableBody');
             if (complaints.length === 0) {
@@ -279,37 +279,42 @@
                 return;
             }
 
-            tbody.innerHTML = complaints.map(item => `
-                <tr class="hover:bg-slate-50">
-                    <td class="p-3">
-                        <span class="font-bold text-blue-600 block">${item.id}</span>
-                        <span class="text-xs font-semibold text-slate-800">${item.name}</span>
-                        <span class="text-[11px] text-slate-500 block">${item.phone}</span>
-                    </td>
-                    <td class="p-3">
-                        <span class="font-medium">${item.district}</span>
-                        <span class="text-xs text-slate-500 block">${item.address}</span>
-                    </td>
-                    <td class="p-3">
-                        <span class="font-medium text-slate-800">${item.issue}</span>
-                        <span class="text-xs text-slate-500 block truncate max-w-xs">${item.desc}</span>
-                    </td>
-                    <td class="p-3">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold 
-                            ${item.status === 'Pending' ? 'bg-amber-100 text-amber-800' : ''}
-                            ${item.status === 'Proses' ? 'bg-blue-100 text-blue-800' : ''}
-                            ${item.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800' : ''}">
-                            ${item.status}
-                        </span>
-                    </td>
-                    <td class="p-3 text-center space-x-1">
-                        <button onclick="updateStatus('${item.id}', 'Pending')" class="px-2 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-xs font-medium">Pend</button>
-                        <button onclick="updateStatus('${item.id}', 'Proses')" class="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-medium">Proses</button>
-                        <button onclick="updateStatus('${item.id}', 'Selesai')" class="px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded text-xs font-medium">Selesai</button>
-                        <button onclick="deleteComplaint('${item.id}')" class="px-2 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-xs font-medium" title="Hapus"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = complaints.map(item => {
+                let badgeClass = "bg-amber-100 text-amber-800";
+                if (item.status === 'Penugasan Tim') badgeClass = "bg-indigo-100 text-indigo-800";
+                if (item.status === 'Proses') badgeClass = "bg-blue-100 text-blue-800";
+                if (item.status === 'Selesai') badgeClass = "bg-emerald-100 text-emerald-800";
+
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3">
+                            <span class="font-bold text-blue-600 block">${item.id}</span>
+                            <span class="text-xs font-semibold text-slate-800">${item.name}</span>
+                            <span class="text-[11px] text-slate-500 block">${item.phone}</span>
+                        </td>
+                        <td class="p-3">
+                            <span class="font-medium">${item.district}</span>
+                            <span class="text-xs text-slate-500 block">${item.address}</span>
+                        </td>
+                        <td class="p-3">
+                            <span class="font-medium text-slate-800">${item.issue}</span>
+                            <span class="text-xs text-slate-500 block truncate max-w-xs">${item.desc}</span>
+                        </td>
+                        <td class="p-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeClass}">
+                                ${item.status}
+                            </span>
+                        </td>
+                        <td class="p-3 text-center space-x-1 whitespace-nowrap">
+                            <button onclick="updateStatus('${item.id}', 'Menunggu Verifikasi')" class="px-2 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-medium" title="Verifikasi">Verif</button>
+                            <button onclick="updateStatus('${item.id}', 'Penugasan Tim')" class="px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-[11px] font-medium" title="Penugasan">Tim</button>
+                            <button onclick="updateStatus('${item.id}', 'Proses')" class="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-medium" title="Proses">Proses</button>
+                            <button onclick="updateStatus('${item.id}', 'Selesai')" class="px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded text-[11px] font-medium" title="Selesai">Selesai</button>
+                            <button onclick="deleteComplaint('${item.id}')" class="px-2 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-medium" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function updateStatus(id, newStatus) {
