@@ -3,318 +3,1145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pengaduan Air Minum Kota Sorong</title>
-    <!-- Tailwind CSS -->
+    <title>Layanan Informasi & Aduan | UPTD Air Minum Kota Sorong</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet OpenStreetMap CSS & JS (Fitur Peta Lokasi) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#06b6d4',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .leaflet-pane { z-index: 10 !important; }
+        .leaflet-top, .leaflet-bottom { z-index: 20 !important; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
 
-    <!-- Header / Navigasi Publik -->
-    <header class="bg-blue-700 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-white text-blue-700 p-2 rounded-lg font-bold text-xl">
-                    <i class="fa-solid fa-droplet"></i>
+    <!-- Header & Navigasi -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo & Judul Pemerintah Kota Sorong -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="showSection('beranda')">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+                        <i class="fa-solid fa-droplet text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-extrabold tracking-wider text-cyan-600 uppercase block">PEMERINTAH KOTA SORONG</span>
+                        <h1 class="text-base sm:text-lg font-black text-slate-800 leading-none">UPTD AIR MINUM</h1>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="font-bold text-lg leading-tight">PDAM Kota Sorong</h1>
-                    <p class="text-xs text-blue-200">Layanan Pengaduan Masyarakat</p>
+
+                <!-- Desktop Navigasi -->
+                <nav class="hidden md:flex items-center space-x-1">
+                    <button onclick="showSection('beranda')" class="nav-link px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 transition">Beranda</button>
+                    <button onclick="showSection('layanan-informasi')" class="nav-link px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 transition">
+                        <i class="fa-solid fa-circle-info mr-1 text-cyan-600"></i>Layanan Informasi
+                    </button>
+                    <button onclick="showSection('buat-aduan')" class="nav-link px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 transition">
+                        <i class="fa-solid fa-pen-to-square mr-1 text-cyan-600"></i>Layanan Aduan
+                    </button>
+                    <button onclick="showSection('cek-status')" class="nav-link px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 transition">Lacak Status Aduan</button>
+                </nav>
+
+                <!-- Tombol Portal Petugas & WhatsApp Hotline -->
+                <div class="hidden lg:flex items-center space-x-3">
+                    <button onclick="openAdminAuthModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 border border-slate-200">
+                        <i class="fa-solid fa-user-shield text-cyan-600"></i>
+                        <span>Portal Petugas</span>
+                    </button>
+                    <a href="https://wa.me/6282238078385" target="_blank" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-500/20 transition flex items-center space-x-2">
+                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                        <span>Hotline WA</span>
+                    </a>
+                </div>
+
+                <!-- Tombol Mobile Menu -->
+                <div class="md:hidden flex items-center space-x-2">
+                    <button onclick="openAdminAuthModal()" class="p-2 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </button>
+                    <button onclick="toggleMobileMenu()" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
                 </div>
             </div>
-            <!-- Indikator Portal Warga -->
-            <div class="text-xs bg-blue-800 px-3 py-1.5 rounded-lg font-medium text-blue-100">
-                <i class="fa-solid fa-users mr-1"></i> Portal Warga
-            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-100 px-4 pt-2 pb-4 space-y-2">
+            <button onclick="showSection('beranda'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-base font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-600">Beranda</button>
+            <button onclick="showSection('layanan-informasi'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-base font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-600">Layanan Informasi</button>
+            <button onclick="showSection('buat-aduan'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-base font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-600">Layanan Aduan</button>
+            <button onclick="showSection('cek-status'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-base font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-600">Lacak Status Aduan</button>
+            <a href="https://wa.me/6282238078385" target="_blank" class="block w-full text-center px-3 py-2 bg-emerald-500 text-white rounded-lg font-medium">WhatsApp Call Center Kota Sorong</a>
         </div>
     </header>
 
-    <!-- Konten Utama Masyarakat -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
-        <!-- Banner / Hero -->
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 md:p-10 text-white shadow-lg relative overflow-hidden">
-            <div class="relative z-10 max-w-2xl">
-                <span class="bg-blue-500 bg-opacity-50 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Layanan Resmi</span>
-                <h2 class="text-2xl md:text-4xl font-bold mt-2 mb-3">Sampaikan Keluhan Air Bersih Anda</h2>
-                <p class="text-blue-100 text-sm md:text-base mb-6">Laporkan gangguan distribusi air, pipa bocor, atau kualitas air di wilayah Kota Sorong agar segera ditindaklanjuti oleh petugas.</p>
-                <div class="flex flex-wrap gap-3">
-                    <button onclick="document.getElementById('formPengaduan').scrollIntoView({behavior: 'smooth'})" class="bg-white text-blue-700 font-semibold px-5 py-2.5 rounded-xl shadow hover:bg-blue-50 transition text-sm">
-                        <i class="fa-solid fa-pen-to-square mr-2"></i> Buat Laporan Baru
-                    </button>
-                    <button onclick="document.getElementById('cekStatusSection').scrollIntoView({behavior: 'smooth'})" class="bg-blue-800 bg-opacity-60 border border-blue-400 text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-opacity-80 transition text-sm">
-                        <i class="fa-solid fa-magnifying-glass mr-2"></i> Cek Status Laporan
-                    </button>
+    <!-- Konten Utama Daur Ulang Halaman -->
+    <main class="flex-grow">
+        
+        <!-- HALAMAN 1: BERANDA -->
+        <section id="sec-beranda" class="space-y-12">
+            <!-- Banner Hero -->
+            <div class="relative bg-gradient-to-r from-slate-900 via-cyan-950 to-blue-900 text-white py-16 lg:py-24 overflow-hidden">
+                <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-6">
+                            <div class="inline-flex items-center space-x-2 bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-full text-xs font-semibold">
+                                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                                <span>Portal Resmi UPTD Air Minum Kota Sorong</span>
+                            </div>
+                            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
+                                Portal Layanan Informasi & Aduan Air Minum
+                            </h2>
+                            <p class="text-slate-300 text-base sm:text-lg">
+                                Pusat informasi operasional dan sarana penyampaian aduan langsung bagi seluruh warga Kota Sorong.
+                            </p>
+                            <div class="flex flex-wrap gap-3 pt-2">
+                                <button onclick="showSection('buat-aduan')" class="px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-cyan-500/30 transition flex items-center space-x-2">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    <span>Buat Aduan Baru</span>
+                                </button>
+                                <button onclick="showSection('layanan-informasi')" class="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold border border-white/20 rounded-xl backdrop-blur-md transition flex items-center space-x-2">
+                                    <i class="fa-solid fa-circle-info"></i>
+                                    <span>Layanan Informasi</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Cek Tiket Cepat -->
+                        <div class="bg-white/10 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/20 shadow-2xl space-y-4">
+                            <h3 class="text-xl font-bold text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-ticket text-cyan-400"></i>
+                                <span>Cek Status Tiket Aduan</span>
+                            </h3>
+                            <p class="text-sm text-slate-300">Masukkan Nomor Tiket Aduan atau Nomor WhatsApp pelapor.</p>
+                            <div class="space-y-3">
+                                <input type="text" id="quick-ticket-input" placeholder="Contoh: ADU-2026-001" class="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-sm">
+                                <button onclick="quickCheckTicket()" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-extrabold rounded-xl transition shadow-md">
+                                    Cek Progress Laporan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="absolute right-[-20px] bottom-[-20px] opacity-10 text-9xl">
-                <i class="fa-solid fa-water"></i>
-            </div>
-        </div>
 
-        <!-- Grid Konten -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Form Pengaduan -->
-            <div id="formPengaduan" class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
-                    <i class="fa-solid fa-file-circle-plus text-blue-600 mr-2"></i> Form Pengaduan
-                </h3>
-                <form id="complaintForm" onsubmit="handleCitizenSubmit(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama Lengkap</label>
-                        <input type="text" id="citizenName" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Bpk. Yohan">
+            <!-- 2 LAYANAN UTAMA CARD -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+                <div class="text-center max-w-2xl mx-auto space-y-2">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-800">2 Layanan Utama Portal</h2>
+                    <p class="text-slate-500 text-sm">Pilih layanan yang Anda perlukan di bawah ini.</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Card 1: Layanan Informasi -->
+                    <div onclick="showSection('layanan-informasi')" class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-xl hover:border-cyan-200 transition cursor-pointer flex flex-col justify-between group space-y-6">
+                        <div class="space-y-4">
+                            <div class="w-16 h-16 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-800">1. Layanan Informasi</h3>
+                            <p class="text-slate-600 text-sm leading-relaxed">
+                                Temukan pengumuman resmi jadwal pemeliharaan jaringan pipa, syarat pelayanan, prosedur perbaikan, berita operasional UPTD Air Minum Kota Sorong, serta pertanyaan umum (FAQ).
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-slate-100 flex justify-between items-center text-cyan-600 font-bold text-sm">
+                            <span>Buka Pusat Informasi</span>
+                            <i class="fa-solid fa-arrow-right group-hover:translate-x-2 transition"></i>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nomor WhatsApp / HP</label>
-                        <input type="tel" id="citizenPhone" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="081234567xxx">
+
+                    <!-- Card 2: Layanan Aduan -->
+                    <div onclick="showSection('buat-aduan')" class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-xl hover:border-cyan-200 transition cursor-pointer flex flex-col justify-between group space-y-6">
+                        <div class="space-y-4">
+                            <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-800">2. Layanan Aduan</h3>
+                            <p class="text-slate-600 text-sm leading-relaxed">
+                                Sampaikan segala kendala atau keluhan seputar air bersih secara bebas dan mandiri (diketik manual). Dilengkapi peta penanda lokasi untuk respon tim teknis UPTD di lapangan.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-slate-100 flex justify-between items-center text-cyan-600 font-bold text-sm">
+                            <span>Tulis Aduan Sekarang</span>
+                            <i class="fa-solid fa-arrow-right group-hover:translate-x-2 transition"></i>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Wilayah / Kelurahan</label>
-                        <select id="citizenDistrict" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="">-- Pilih Wilayah / Distrik --</option>
-                            <option value="Sorong Barat">Sorong Barat</option>
-                            <option value="Sorong Kepulauan">Sorong Kepulauan</option>
-                            <option value="Sorong Manoi">Sorong Manoi</option>
-                            <option value="Sorong Timur">Sorong Timur</option>
-                            <option value="Sorong Utara">Sorong Utara</option>
-                            <option value="Malaimsimsa">Malaimsimsa</option>
-                            <option value="Klaburung">Klaburung</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Detail Alamat & Patokan</label>
-                        <input type="text" id="citizenAddress" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Jl. Ahmad Yani, dekat SD Inpres">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Jenis Kendala</label>
-                        <select id="citizenIssue" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="">-- Pilih Kendala --</option>
-                            <option value="Air Tidak Mengalir">Air Tidak Mengalir</option>
-                            <option value="Air Keruh / Kotor">Air Keruh / Kotor</option>
-                            <option value="Pipa Utama Bocor">Pipa Utama Bocor</option>
-                            <option value="Tekanan Air Kecil">Tekanan Air Kecil</option>
-                            <option value="Meteran Air Rusak">Meteran Air Rusak</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Keterangan / Pesan Tambahan</label>
-                        <textarea id="citizenDesc" rows="3" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jelaskan kondisi secara ringkas..."></textarea>
-                    </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-md">
-                        Kirim Pengaduan
-                    </button>
-                </form>
+                </div>
             </div>
 
-            <!-- Daftar Laporan Publik & Cek Status -->
-            <div class="lg:col-span-2 space-y-6">
-                <div id="cekStatusSection" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center">
-                        <i class="fa-solid fa-ticket text-blue-600 mr-2"></i> Lacak Tiket Laporan Anda
+            <!-- Ringkasan Statistik Laporan -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+                <div class="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-4 gap-2">
+                        <div>
+                            <h3 class="font-bold text-lg">Statistik Penanganan Aduan Warga</h3>
+                            <p class="text-slate-400 text-xs">Pembaruan data laporan masuk & status tindak lanjut UPTD Kota Sorong</p>
+                        </div>
+                        <span class="text-xs bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full border border-cyan-500/30">Real-Time Update</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50">
+                            <span class="text-slate-400 text-xs block">Total Laporan</span>
+                            <span class="text-2xl font-extrabold text-white" id="stat-total">0</span>
+                        </div>
+                        <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50">
+                            <span class="text-slate-400 text-xs block">Menunggu Verifikasi</span>
+                            <span class="text-2xl font-extrabold text-amber-400" id="stat-menunggu">0</span>
+                        </div>
+                        <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50">
+                            <span class="text-slate-400 text-xs block">Proses Perbaikan</span>
+                            <span class="text-2xl font-extrabold text-cyan-400" id="stat-proses">0</span>
+                        </div>
+                        <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50">
+                            <span class="text-slate-400 text-xs block">Selesai Ditangani</span>
+                            <span class="text-2xl font-extrabold text-emerald-400" id="stat-selesai">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAYANAN 1: HALAMAN INFORMASI -->
+        <section id="sec-layanan-informasi" class="hidden py-8">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 space-y-8">
+                <div class="text-center max-w-2xl mx-auto space-y-2">
+                    <div class="inline-flex items-center space-x-2 text-cyan-600 bg-cyan-50 px-3 py-1 rounded-full text-xs font-bold">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Pusat Informasi Resmi</span>
+                    </div>
+                    <h2 class="text-3xl font-extrabold text-slate-800">Layanan Informasi UPTD Air Minum</h2>
+                    <p class="text-slate-500 text-sm">Pengumuman jadwal pemeliharaan, panduan pelayanan, serta pertanyaan seputar air bersih Kota Sorong.</p>
+                </div>
+
+                <!-- Card Pengumuman Terkini -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 space-y-4">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center space-x-2 border-b border-slate-100 pb-3">
+                        <i class="fa-solid fa-bullhorn text-amber-500"></i>
+                        <span>Pengumuman Pemeliharaan & Info Operasional</span>
                     </h3>
-                    <p class="text-xs text-slate-500 mb-4">Masukkan nomor tiket unik yang Anda dapatkan saat mengirimkan laporan untuk melihat progres penanganan.</p>
-                    <div class="flex gap-2">
-                        <input type="text" id="searchTicketInput" placeholder="Masukkan ID Tiket (Contoh: TIKET-102)" class="flex-grow px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button onclick="searchTicket()" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-xl text-sm font-semibold transition">Cari</button>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="bg-amber-500 text-white font-bold px-2 py-0.5 rounded">Jadwal Perawatan</span>
+                                <span class="text-slate-400">Distrik Sorong Timur</span>
+                            </div>
+                            <h4 class="font-bold text-sm text-slate-800">Pembersihan Filter Reservoir Utama</h4>
+                            <p class="text-xs text-slate-600">Estimasi penurunan tekanan suplai air di wilayah Kelurahan km. 10 s/d km. 12 pada jam 22.00 WIT.</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="bg-cyan-600 text-white font-bold px-2 py-0.5 rounded">Himbauan Warga</span>
+                                <span class="text-slate-400">Kota Sorong</span>
+                            </div>
+                            <h4 class="font-bold text-sm text-slate-800">Informasikan Kebocoran Pipa Umum</h4>
+                            <p class="text-xs text-slate-600">Bagi masyarakat yang melihat adanya luapan air dari pipa umum di tepi jalan, diimbau segera mengirim aduan melalui portal ini.</p>
+                        </div>
                     </div>
-                    <div id="searchResultContainer" class="mt-4 hidden"></div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
-                        <span><i class="fa-solid fa-list-check text-blue-600 mr-2"></i> Pengaduan Terbaru</span>
-                        <span class="text-xs font-normal text-slate-500">Transparansi Layanan Warga</span>
+                <!-- FAQ Interaktif -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 space-y-4">
+                    <h3 class="font-bold text-lg text-slate-800 border-b border-slate-100 pb-3">
+                        Pertanyaan Sering Diajukan (FAQ)
                     </h3>
-                    <div id="publicComplaintsList" class="space-y-3 max-h-[400px] overflow-y-auto pr-1"></div>
+
+                    <div class="space-y-3">
+                        <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                            <button onclick="toggleAccordion('faq-1')" class="w-full p-4 text-left font-semibold text-slate-800 text-sm flex justify-between items-center hover:bg-slate-50">
+                                <span>Berapa lama estimasi respon dan penanganan aduan?</span>
+                                <i id="icon-faq-1" class="fa-solid fa-chevron-down text-slate-400 transition-transform"></i>
+                            </button>
+                            <div id="faq-1" class="hidden p-4 pt-0 text-xs text-slate-600 border-t border-slate-50 leading-relaxed">
+                                Verifikasi awal laporan aduan dilakukan dalam kurun 1x24 jam. Penanganan perbaikan teknis pipa diselesaikan 1-3 hari kerja tergantung tingkat kerusakan di lokasi.
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                            <button onclick="toggleAccordion('faq-2')" class="w-full p-4 text-left font-semibold text-slate-800 text-sm flex justify-between items-center hover:bg-slate-50">
+                                <span>Apakah penanganan aduan dikenakan biaya?</span>
+                                <i id="icon-faq-2" class="fa-solid fa-chevron-down text-slate-400 transition-transform"></i>
+                            </button>
+                            <div id="faq-2" class="hidden p-4 pt-0 text-xs text-slate-600 border-t border-slate-50 leading-relaxed">
+                                Seluruh inspeksi dan perbaikan kerusakan pipa umum milik UPTD Air Minum Pemerintah Kota Sorong adalah <strong>GRATIS (Tidak Dipungut Biaya)</strong>.
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                            <button onclick="toggleAccordion('faq-3')" class="w-full p-4 text-left font-semibold text-slate-800 text-sm flex justify-between items-center hover:bg-slate-50">
+                                <span>Bagaimana cara melacak perkembangan status aduan saya?</span>
+                                <i id="icon-faq-3" class="fa-solid fa-chevron-down text-slate-400 transition-transform"></i>
+                            </button>
+                            <div id="faq-3" class="hidden p-4 pt-0 text-xs text-slate-600 border-t border-slate-50 leading-relaxed">
+                                Gunakan menu "Lacak Status Aduan" lalu masukkan Nomor Tiket (misal: ADU-2026-001) atau Nomor WhatsApp yang Anda daftarkan saat mengisi aduan.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call Center Kontak -->
+                <div class="bg-gradient-to-br from-cyan-600 to-blue-700 text-white rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h4 class="font-bold text-lg">Butuh Informasi Lebih Lanjut?</h4>
+                        <p class="text-cyan-100 text-xs mt-1">Hubungi Customer Service UPTD Air Minum Kota Sorong.</p>
+                    </div>
+                    <a href="https://wa.me/6282238078385" target="_blank" class="px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition flex items-center space-x-2">
+                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                        <span>WhatsApp Call Center</span>
+                    </a>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <!-- LAYANAN 2: HALAMAN BUAT ADUAN (DIISI MANUAL DENGAN PLACEHOLDER KHUSUS) -->
+        <section id="sec-buat-aduan" class="hidden py-8">
+            <div class="max-w-3xl mx-auto px-4 sm:px-6">
+                <div class="bg-white rounded-3xl shadow-lg border border-slate-100 p-6 sm:p-10 space-y-6">
+                    <div class="border-b border-slate-100 pb-4">
+                        <div class="inline-flex items-center space-x-2 text-blue-600 bg-blue-50 px-3 py-1 rounded-full text-xs font-bold mb-2">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            <span>Layanan Pengaduan Manual</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-800">Formulir Aduan Air Minum</h2>
+                        <p class="text-slate-500 text-sm">Tuliskan kendala atau pengaduan air minum Anda secara lengkap pada kolom di bawah ini.</p>
+                    </div>
+
+                    <form id="form-pengaduan-air" onsubmit="handlePengaduanSubmit(event)" class="space-y-4">
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Pelapor <span class="text-rose-500">*</span></label>
+                                <input type="text" required id="p-nama" placeholder="Nama Lengkap Pelapor" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">No. Handphone / WhatsApp <span class="text-rose-500">*</span></label>
+                                <input type="tel" required id="p-hp" placeholder="08XXXXXXXXXX" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
+                            </div>
+                        </div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">No. ID Pelanggan (Jika ada)</label>
+                                <input type="text" id="p-idpel" placeholder="Contoh: SRG-10982" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
+                            </div>
+                            
+                            <!-- JENIS ADUAN MANUAL SESUAI CATATAN -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Jenis Aduan / Kendala <span class="text-rose-500">*</span></label>
+                                <input type="text" required id="p-jenis-manual" placeholder="silahkan ketik aduan anda" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
+                            </div>
+                        </div>
+
+                        <!-- FITUR PETA PILIH LOKASI KENDALA -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-700 uppercase flex items-center justify-between">
+                                <span>Tentukan Titik Peta Lokasi (Kota Sorong) <span class="text-rose-500">*</span></span>
+                                <span class="text-[10px] text-cyan-600 font-normal"><i class="fa-solid fa-location-dot mr-1"></i>Klik peta untuk pasang pin</span>
+                            </label>
+                            
+                            <!-- Container Peta Leaflet -->
+                            <div id="map-form" class="w-full h-64 rounded-2xl border border-slate-200 overflow-hidden shadow-inner"></div>
+                            
+                            <!-- Tersembunyi menyimpan Koordinat -->
+                            <input type="hidden" id="p-lat" value="-0.8762">
+                            <input type="hidden" id="p-lng" value="131.2558">
+                            <p class="text-[11px] text-slate-400">Koordinat terpilih: <span id="p-coords-label" class="font-mono font-bold text-slate-700">-0.8762, 131.2558</span></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Alamat Lengkap / Patokan Lokasi <span class="text-rose-500">*</span></label>
+                            <textarea required id="p-alamat" rows="2" placeholder="Jl. Ahmad Yani No. 12, Kel. Remu Utara, Distrik Sorong..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Penjelasan Detail Keluhan / Aduan <span class="text-rose-500">*</span></label>
+                            <textarea required id="p-deskripsi" rows="3" placeholder="Tuliskan kronologi atau detail masalah yang dialami secara jelas..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Unggah Lampiran Foto Bukti (Opsional)</label>
+                            <input type="file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100">
+                        </div>
+
+                        <div class="pt-4">
+                            <button type="submit" class="w-full py-3.5 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl shadow-md transition text-sm flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>Kirim Aduan Sekarang</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- FITUR PELACAKAN STATUS TIKET -->
+        <section id="sec-cek-status" class="hidden py-8">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 space-y-8">
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 sm:p-8 space-y-4 text-center max-w-2xl mx-auto">
+                    <h2 class="text-2xl font-bold text-slate-800">Pelacakan Status Aduan</h2>
+                    <p class="text-slate-500 text-sm">Pantau proses penanganan aduan Anda oleh tim UPTD Air Minum Kota Sorong.</p>
+
+                    <div class="flex flex-col sm:flex-row gap-2 pt-2">
+                        <input type="text" id="track-search-input" placeholder="Masukkan Nomor Tiket (misal: ADU-2026-001) / No. HP" class="flex-grow px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
+                        <button onclick="executeTracking()" class="px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl transition text-sm flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>Cari Tiket</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hasil Pelacakan Container -->
+                <div id="tracking-result-container" class="space-y-6">
+                    <!-- Dinamis diisi via JS -->
+                </div>
+            </div>
+        </section>
+
     </main>
 
-    <!-- Modal Notifikasi -->
-    <div id="customModal" class="fixed inset-0 bg-slate-900 bg-opacity-50 hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl text-center">
-            <div id="modalIconContainer" class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold"></div>
-            <h3 id="modalTitle" class="text-lg font-bold text-slate-800 mb-2"></h3>
-            <p id="modalMessage" class="text-sm text-slate-600 mb-6"></p>
-            <button onclick="closeModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl text-sm transition">Mengerti</button>
+    <!-- MODAL AUTENTIKASI LOGIN PETUGAS (PASSWORD: Admin / UPTDAM2026) -->
+    <div id="admin-auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden p-6 space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-600 text-white flex items-center justify-center font-bold text-xs">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h3 class="font-bold text-base text-slate-800">Login Portal Petugas</h3>
+                </div>
+                <button onclick="closeAdminAuthModal()" class="text-slate-400 hover:text-slate-700 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Username</label>
+                    <input type="text" required id="admin-user" placeholder="Masukkan Username" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Password</label>
+                    <input type="password" required id="admin-pass" placeholder="Masukkan Password" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl shadow-md transition text-sm">
+                        Masuk Dashboard
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 text-center py-4 text-xs text-slate-500 mt-auto">
-        <p>&copy; 2026 Pengaduan Air Minum Kota Sorong. Didedikasikan untuk Pelayanan Publik yang Lebih Baik.</p>
+    <!-- MODAL DASHBOARD PETugas / ADMIN UPTD KOTA SORONG -->
+    <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <!-- Header Modal -->
+            <div class="p-6 bg-slate-900 text-white flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Portal Petugas - Pemkot Sorong</h3>
+                        <p class="text-xs text-slate-400">Manajemen Aduan & Update Penanganan UPTD Air Minum</p>
+                    </div>
+                </div>
+                <button onclick="toggleAdminModal()" class="text-slate-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Isi Modal & Tabel Data -->
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-grow space-y-6">
+                <!-- PETA SEBARAN ADUAN PETUGAS -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <h4 class="font-bold text-xs uppercase text-slate-700 flex items-center space-x-2">
+                        <i class="fa-solid fa-map-location-dot text-cyan-600"></i>
+                        <span>Peta Sebaran Laporan Lokasi Masalah (Kota Sorong)</span>
+                    </h4>
+                    <div id="map-admin" class="w-full h-56 rounded-xl border border-slate-200"></div>
+                </div>
+
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="filterAdminTable('ALL')" id="btn-filter-all" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 text-white">Semua (<span id="cnt-all">0</span>)</button>
+                        <button onclick="filterAdminTable('Menunggu Verifikasi')" id="btn-filter-menunggu" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Menunggu (<span id="cnt-menunggu">0</span>)</button>
+                        <button onclick="filterAdminTable('Proses Perbaikan')" id="btn-filter-proses" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Dalam Perbaikan (<span id="cnt-proses">0</span>)</button>
+                        <button onclick="filterAdminTable('Selesai')" id="btn-filter-selesai" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Selesai (<span id="cnt-selesai">0</span>)</button>
+                    </div>
+
+                    <button onclick="resetDefaultData()" class="text-xs text-rose-600 hover:underline font-semibold">
+                        <i class="fa-solid fa-rotate-right mr-1"></i>Reset Data Sampel
+                    </button>
+                </div>
+
+                <!-- Tabel Data Aduan -->
+                <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-700 uppercase border-b border-slate-200 font-bold">
+                                <th class="p-3">No. Tiket</th>
+                                <th class="p-3">Pelapor / Kontak</th>
+                                <th class="p-3">Jenis Aduan (Manual)</th>
+                                <th class="p-3">Alamat Lokasi</th>
+                                <th class="p-3">Tanggal Lapor</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Aksi Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="divide-y divide-slate-100">
+                            <!-- Injeksi Baris Data via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="toggleAdminModal()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs">
+                    Tutup Portal Petugas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sistem Notifikasi Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden transition-all transform duration-300">
+        <div id="toast-content" class="px-5 py-4 rounded-2xl shadow-2xl text-white font-semibold text-sm flex items-center space-x-3">
+            <i id="toast-icon" class="fa-solid fa-circle-check text-lg"></i>
+            <span id="toast-msg">Notifikasi</span>
+        </div>
+    </div>
+
+    <!-- Footer Sesuai Permintaan Spesifik -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-10 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-800 pb-8">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-2xl bg-cyan-600 text-white flex items-center justify-center font-bold text-xl shadow-lg">
+                        <i class="fa-solid fa-droplet"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-white block text-sm tracking-wide">PEMERINTAH KOTA SORONG</span>
+                        <span class="text-cyan-400 font-semibold">UPTD Air Minum</span>
+                    </div>
+                </div>
+
+                <div class="space-y-1 text-slate-300 text-xs leading-relaxed max-w-md">
+                    <p><strong class="text-white"><i class="fa-solid fa-building mr-1 text-cyan-400"></i>Kantor Fisik:</strong> Kantor Dinas Cipta Karya dan Tata Ruang Kota Sorong, Jalan Burung Merpati No. 02, Remu Utara.</p>
+                    <p><strong class="text-white"><i class="fa-solid fa-clock mr-1 text-cyan-400"></i>Jam Operasional:</strong> Senin - Jumat, 09.00 - 15.00 WIT.</p>
+                    <p><strong class="text-white"><i class="fa-solid fa-envelope mr-1 text-cyan-400"></i>Email Resmi:</strong> uptdairminumkotasorong@gmail.com</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-between items-center text-center sm:text-left gap-4 text-slate-500">
+                <p>&copy; 2026 Pemerintah Kota Sorong. Hak Cipta Dilindungi Undang-Undang.</p>
+                <div class="flex items-center space-x-4">
+                    <a href="https://wa.me/6282238078385" target="_blank" class="hover:text-cyan-400 transition flex items-center space-x-1 font-bold text-emerald-400">
+                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                        <span>082238078385</span>
+                    </a>
+                </div>
+            </div>
+        </div>
     </footer>
 
-    <!-- Logika Khusus Masyarakat -->
+    <!-- JavaScript Logika Aplikasi, Peta & Pesan Otomatis WhatsApp -->
     <script>
-        const defaultComplaints = [
+        // Koordinat Utama Pusat Kota Sorong (-0.8762, 131.2558)
+        const SORONG_CENTER = [-0.8762, 131.2558];
+        const UPTD_WA_NUMBER = "6282238078385";
+        let formMap, formMarker;
+        let adminMap, adminMarkersGroup;
+
+        // Data Sampel Pengaduan Air Kota Sorong
+        const sampleTickets = [
             {
-                id: "TIKET-101",
-                name: "Mama Ros",
-                phone: "08114455xxxx",
-                district: "Sorong Manoi",
-                address: "Jl. Basuki Rahmat KM 10",
-                issue: "Air Tidak Mengalir",
-                desc: "Air sudah mati sejak 2 hari lalu tanpa pemberitahuan.",
-                status: "Proses",
-                date: "16 Agustus 2026"
+                id: "ADU-2026-001",
+                nama: "Yohanes Kambu",
+                hp: "081298765432",
+                idpel: "SRG-10982",
+                jenis: "Suplai Air Mati Sejak Kemarin Pagi",
+                lokasi: "Jl. Ahmad Yani No. 45, Kel. Remu Utara, Distrik Sorong",
+                lat: -0.8755,
+                lng: 131.2580,
+                deskripsi: "Air mati total sejak kemarin sore jam 15.00 WIT, tetangga se-kompleks juga tidak mengalir.",
+                status: "Proses Perbaikan",
+                tanggal: "14/08/2026 09:30",
+                timeline: [
+                    { time: "14/08/2026 09:30", status: "Aduan Diterima Sistem UPTD" },
+                    { time: "14/08/2026 11:15", status: "Tim Teknis Ditugaskan ke Lokasi" },
+                    { time: "15/08/2026 08:00", status: "Proses Perbaikan Pipa Distribusi Remu" }
+                ]
             },
             {
-                id: "TIKET-102",
-                name: "Bpk. Markus",
-                phone: "08524411xxxx",
-                district: "Sorong Timur",
-                address: "Kampung Baru KM 12",
-                issue: "Air Keruh / Kotor",
-                desc: "Air yang mengalir berwarna kecoklatan dan berbau lumpur.",
-                status: "Pending",
-                date: "17 Agustus 2026"
+                id: "ADU-2026-002",
+                nama: "Siti Aminah",
+                hp: "085211223344",
+                idpel: "SRG-10984",
+                jenis: "Pipa Distribusi Bocor Di Pinggir Jalan Utama",
+                lokasi: "Jl. Basuki Rahmat Km. 9, Kel. Sawagumu, Distrik Sorong Utara",
+                lat: -0.8870,
+                lng: 131.2820,
+                deskripsi: "Pipa air meluap di pinggir jalan utama dekat pertigaan.",
+                status: "Penugasan Tim Teknis",
+                tanggal: "15/08/2026 10:20",
+                timeline: [
+                    { time: "15/08/2026 10:20", status: "Aduan Diterima Sistem UPTD" },
+                    { time: "15/08/2026 11:00", status: "Tim Teknis Lapangan Berangkat Ke Lokasi" }
+                ]
             }
         ];
 
-        function getStoredComplaints() {
-            const data = localStorage.getItem('sorong_water_complaints');
-            if (!data) {
-                localStorage.setItem('sorong_water_complaints', JSON.stringify(defaultComplaints));
-                return defaultComplaints;
+        // Ambil data tiket dari LocalStorage
+        function getStoredTickets() {
+            const stored = localStorage.getItem('uptd_sorong_aduan_v3');
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch(e) {
+                    return sampleTickets;
+                }
             }
-            return JSON.parse(data);
+            localStorage.setItem('uptd_sorong_aduan_v3', JSON.stringify(sampleTickets));
+            return sampleTickets;
         }
 
-        function saveComplaints(data) {
-            localStorage.setItem('sorong_water_complaints', JSON.stringify(data));
+        function saveTickets(tickets) {
+            localStorage.setItem('uptd_sorong_aduan_v3', JSON.stringify(tickets));
+            updateStatistics();
         }
 
-        function showModal(title, message, isSuccess = true) {
-            const modal = document.getElementById('customModal');
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalMessage').innerText = message;
-            const iconContainer = document.getElementById('modalIconContainer');
+        let ticketsData = getStoredTickets();
+        let currentAdminFilter = 'ALL';
 
-            if (isSuccess) {
-                iconContainer.className = "w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 text-xl font-bold";
-                iconContainer.innerHTML = '<i class="fa-solid fa-check"></i>';
+        // Autentikasi Modal Petugas
+        function openAdminAuthModal() {
+            document.getElementById('admin-auth-modal').classList.remove('hidden');
+        }
+
+        function closeAdminAuthModal() {
+            document.getElementById('admin-auth-modal').classList.add('hidden');
+            document.getElementById('admin-user').value = '';
+            document.getElementById('admin-pass').value = '';
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('admin-user').value.trim();
+            const pass = document.getElementById('admin-pass').value.trim();
+
+            if (user === "Admin" && pass === "UPTDAM2026") {
+                closeAdminAuthModal();
+                toggleAdminModal();
+                showToast("Login Petugas Berhasil!");
             } else {
-                iconContainer.className = "w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3 text-xl font-bold";
-                iconContainer.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                showToast("Username atau Password Salah!", "error");
             }
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
         }
 
-        function closeModal() {
-            document.getElementById('customModal').classList.remove('flex');
-            document.getElementById('customModal').classList.add('hidden');
-        }
+        // Inisialisasi Peta Leaflet Pada Form Laporan
+        function initFormMap() {
+            if (formMap) return;
 
-        function handleCitizenSubmit(event) {
-            event.preventDefault();
-            const name = document.getElementById('citizenName').value;
-            const phone = document.getElementById('citizenPhone').value;
-            const district = document.getElementById('citizenDistrict').value;
-            const address = document.getElementById('citizenAddress').value;
-            const issue = document.getElementById('citizenIssue').value;
-            const desc = document.getElementById('citizenDesc').value;
+            formMap = L.map('map-form').setView(SORONG_CENTER, 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap Kota Sorong'
+            }).addTo(formMap);
 
-            const complaints = getStoredComplaints();
-            const newId = "TIKET-" + Math.floor(100 + Math.random() * 900);
+            formMarker = L.marker(SORONG_CENTER, { draggable: true }).addTo(formMap);
 
-            complaints.unshift({
-                id: newId,
-                name,
-                phone,
-                district,
-                address,
-                issue,
-                desc,
-                status: "Pending",
-                date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+            formMap.on('click', function(e) {
+                const lat = e.latlng.lat.toFixed(6);
+                const lng = e.latlng.lng.toFixed(6);
+                setFormCoordinates(lat, lng);
             });
 
-            saveComplaints(complaints);
-            document.getElementById('complaintForm').reset();
-            showModal("Laporan Berhasil Dikirim!", `Nomor tiket pengaduan Anda adalah ${newId}. Simpan nomor ini untuk melacak status laporan.`);
-            renderPublicComplaints();
+            formMarker.on('dragend', function(e) {
+                const position = formMarker.getLatLng();
+                setFormCoordinates(position.lat.toFixed(6), position.lng.toFixed(6));
+            });
         }
 
-        function renderPublicComplaints() {
-            const container = document.getElementById('publicComplaintsList');
-            const complaints = getStoredComplaints();
+        function setFormCoordinates(lat, lng) {
+            if (formMarker) {
+                formMarker.setLatLng([lat, lng]);
+            }
+            document.getElementById('p-lat').value = lat;
+            document.getElementById('p-lng').value = lng;
+            document.getElementById('p-coords-label').innerText = `${lat}, ${lng}`;
+        }
 
-            if (complaints.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Belum ada pengaduan yang tercatat.</p>`;
+        // Inisialisasi Peta Pada Modal Admin/Petugas
+        function initAdminMap() {
+            if (!adminMap) {
+                adminMap = L.map('map-admin').setView(SORONG_CENTER, 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap UPTD Sorong'
+                }).addTo(adminMap);
+                adminMarkersGroup = L.layerGroup().addTo(adminMap);
+            }
+
+            adminMarkersGroup.clearLayers();
+            ticketsData.forEach(t => {
+                if (t.lat && t.lng) {
+                    const marker = L.marker([t.lat, t.lng]);
+                    marker.bindPopup(`
+                        <div class="text-xs space-y-1">
+                            <strong class="text-cyan-700 font-bold">${t.id}</strong><br>
+                            <b>${t.nama}</b> - ${t.jenis}<br>
+                            <span class="text-slate-500">${t.lokasi}</span><br>
+                            <span class="inline-block mt-1 font-bold text-slate-800">Status: ${t.status}</span>
+                        </div>
+                    `);
+                    adminMarkersGroup.addLayer(marker);
+                }
+            });
+            
+            setTimeout(() => { adminMap.invalidateSize(); }, 300);
+        }
+
+        // Perpindahan Halaman / Navigasi
+        function showSection(sectionId) {
+            const sections = ['beranda', 'layanan-informasi', 'buat-aduan', 'cek-status'];
+            sections.forEach(sec => {
+                const el = document.getElementById(`sec-${sec}`);
+                if (el) el.classList.add('hidden');
+            });
+
+            const target = document.getElementById(`sec-${sectionId}`);
+            if (target) {
+                target.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                if (sectionId === 'buat-aduan') {
+                    setTimeout(() => {
+                        initFormMap();
+                        formMap.invalidateSize();
+                    }, 200);
+                }
+            }
+        }
+
+        // Toggle Navigasi Seluler
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Tampilkan Pesan Toast Notifikasi
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastContent = document.getElementById('toast-content');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = message;
+            
+            if (type === 'success') {
+                toastContent.className = "px-5 py-4 rounded-2xl shadow-2xl text-white font-semibold text-sm flex items-center space-x-3 bg-emerald-600";
+                toastIcon.className = "fa-solid fa-circle-check text-lg";
+            } else {
+                toastContent.className = "px-5 py-4 rounded-2xl shadow-2xl text-white font-semibold text-sm flex items-center space-x-3 bg-rose-600";
+                toastIcon.className = "fa-solid fa-triangle-exclamation text-lg";
+            }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 4000);
+        }
+
+        // Generator ID Tiket Otomatis
+        function generateTicketID() {
+            const randomNum = Math.floor(100 + Math.random() * 900);
+            return `ADU-2026-${randomNum}`;
+        }
+
+        // Waktu Sekarang
+        function getCurrentDateTime() {
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+        }
+
+        // Submit Formulir Pengaduan + Kirim Pesan Otomatis ke WhatsApp
+        function handlePengaduanSubmit(e) {
+            e.preventDefault();
+            const nama = document.getElementById('p-nama').value;
+            const hp = document.getElementById('p-hp').value;
+            const idpel = document.getElementById('p-idpel').value || '-';
+            const jenisManual = document.getElementById('p-jenis-manual').value;
+            const alamat = document.getElementById('p-alamat').value;
+            const deskripsi = document.getElementById('p-deskripsi').value;
+            const lat = parseFloat(document.getElementById('p-lat').value);
+            const lng = parseFloat(document.getElementById('p-lng').value);
+
+            const newTicket = {
+                id: generateTicketID(),
+                nama: nama,
+                hp: hp,
+                idpel: idpel,
+                jenis: jenisManual.trim(),
+                lokasi: alamat,
+                lat: lat,
+                lng: lng,
+                deskripsi: deskripsi,
+                status: "Menunggu Verifikasi",
+                tanggal: getCurrentDateTime(),
+                timeline: [
+                    { time: getCurrentDateTime(), status: "Aduan Diterima Sistem UPTD Kota Sorong" }
+                ]
+            };
+
+            ticketsData.unshift(newTicket);
+            saveTickets(ticketsData);
+
+            document.getElementById('form-pengaduan-air').reset();
+            showToast(`Aduan dikirim! No Tiket: ${newTicket.id}`);
+
+            // Buat Pesan Otomatis WhatsApp ke UPTD
+            const waMessage = encodeURIComponent(
+                `*PENGADUAN BARU UPTD AIR MINUM KOTA SORONG*\n\n` +
+                `📌 *No. Tiket:* ${newTicket.id}\n` +
+                `👤 *Nama:* ${nama} (${hp})\n` +
+                `🏷️ *ID Pelanggan:* ${idpel}\n` +
+                `⚠️ *Jenis Aduan:* ${jenisManual.trim()}\n` +
+                `📍 *Alamat:* ${alamat}\n` +
+                `📝 *Deskripsi:* ${deskripsi}\n` +
+                `🌐 *Koordinat Peta:* https://maps.google.com/?q=${lat},${lng}\n\n` +
+                `Mohon segera ditindaklanjuti. Terima kasih.`
+            );
+
+            // Buka WhatsApp Otomatis
+            window.open(`https://wa.me/${UPTD_WA_NUMBER}?text=${waMessage}`, '_blank');
+            
+            showSection('cek-status');
+            renderTrackingResults(newTicket.id);
+        }
+
+        // Pencarian Cepat Dari Hero
+        function quickCheckTicket() {
+            const input = document.getElementById('quick-ticket-input').value.trim();
+            if (!input) {
+                showToast("Masukkan Nomor Tiket atau No. HP pelapor", "error");
+                return;
+            }
+            showSection('cek-status');
+            document.getElementById('track-search-input').value = input;
+            renderTrackingResults(input);
+        }
+
+        // Eksekusi Tombol Cari Tiket
+        function executeTracking() {
+            const input = document.getElementById('track-search-input').value.trim();
+            renderTrackingResults(input);
+        }
+
+        // Render Card Hasil Pelacakan Pengaduan
+        function renderTrackingResults(query = "") {
+            const container = document.getElementById('tracking-result-container');
+            container.innerHTML = "";
+
+            if (!query) {
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 text-center text-slate-400">
+                        <i class="fa-solid fa-clipboard-list text-4xl mb-3 text-slate-300 block"></i>
+                        <p class="text-sm">Ketik nomor tiket aduan Anda di kotak pencarian di atas untuk melihat status perkembangan laporan.</p>
+                    </div>
+                `;
                 return;
             }
 
-            container.innerHTML = complaints.map(item => {
-                let badgeColor = "bg-amber-100 text-amber-800";
-                if (item.status === 'Proses') badgeColor = "bg-blue-100 text-blue-800";
-                if (item.status === 'Selesai') badgeColor = "bg-emerald-100 text-emerald-800";
+            const results = ticketsData.filter(t => 
+                t.id.toLowerCase().includes(query.toLowerCase()) || 
+                t.hp.includes(query)
+            );
 
-                return `
-                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2">
-                        <div class="flex justify-between items-center">
-                            <span class="font-bold text-blue-700">${item.id}</span>
-                            <span class="px-2 py-0.5 rounded-full font-semibold ${badgeColor}">${item.status}</span>
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 text-center text-slate-500">
+                        <i class="fa-solid fa-magnifying-glass-minus text-4xl mb-3 text-rose-400 block"></i>
+                        <h4 class="font-bold text-slate-800 text-base">Tiket Aduan Tidak Ditemukan</h4>
+                        <p class="text-xs text-slate-400 mt-1">Pastikan Nomor Tiket (misal: ADU-2026-001) atau Nomor WhatsApp yang didaftarkan sudah benar.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            results.forEach((t, index) => {
+                let badgeColor = "bg-amber-100 text-amber-800 border-amber-200";
+                if (t.status === "Proses Perbaikan" || t.status === "Penugasan Tim Teknis") badgeColor = "bg-blue-100 text-blue-800 border-blue-200";
+                if (t.status === "Selesai") badgeColor = "bg-emerald-100 text-emerald-800 border-emerald-200";
+
+                const timelineHtml = t.timeline.map((item, idx) => `
+                    <div class="flex items-start space-x-3 text-xs">
+                        <div class="flex flex-col items-center">
+                            <div class="w-3 h-3 rounded-full bg-cyan-600 mt-0.5"></div>
+                            ${idx !== t.timeline.length - 1 ? '<div class="w-0.5 h-6 bg-slate-200 my-0.5"></div>' : ''}
                         </div>
-                        <div class="text-slate-700">
-                            <p class="font-semibold">${item.issue} <span class="font-normal text-slate-500">(${item.district})</span></p>
-                            <p class="text-slate-500 mt-0.5">${item.desc}</p>
+                        <div>
+                            <span class="font-bold text-slate-800">${item.status}</span>
+                            <span class="block text-slate-400 text-[10px]">${item.time}</span>
                         </div>
-                        <div class="text-[11px] text-slate-400 flex justify-between pt-1 border-t border-slate-200">
-                            <span>Pelapor: ${item.name.substring(0, 2)}***</span>
-                            <span>${item.date}</span>
+                    </div>
+                `).join('');
+
+                const mapId = `map-track-${index}`;
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4";
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-cyan-50 text-cyan-700 border border-cyan-100">Pemkot Sorong</span>
+                                <h3 class="text-lg font-extrabold text-cyan-600">${t.id}</h3>
+                            </div>
+                            <span class="text-xs text-slate-400">Tanggal Lapor: ${t.tanggal}</span>
+                        </div>
+                        <div>
+                            <span class="px-3 py-1.5 rounded-full text-xs font-bold border ${badgeColor}">
+                                Status: ${t.status}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4 text-xs">
+                        <div class="space-y-2 bg-slate-50 p-4 rounded-2xl">
+                            <div>
+                                <span class="text-slate-400 font-medium block">Pelapor / Telepon:</span>
+                                <span class="font-bold text-slate-800">${t.nama} (${t.hp})</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 font-medium block">ID Pelanggan:</span>
+                                <span class="font-bold text-slate-800">${t.idpel}</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 font-medium block">Jenis Aduan (Manual):</span>
+                                <span class="font-bold text-slate-800 text-cyan-700">${t.jenis}</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 font-medium block">Alamat Lokasi:</span>
+                                <span class="text-slate-700">${t.lokasi}</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 font-medium block">Keterangan Detail:</span>
+                                <span class="text-slate-700 italic">"${t.deskripsi}"</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-2xl space-y-3 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-slate-700 text-xs uppercase tracking-wider flex items-center space-x-2 mb-2">
+                                    <i class="fa-solid fa-list-check text-cyan-600"></i>
+                                    <span>Riwayat Penanganan UPTD Sorong</span>
+                                </h4>
+                                <div class="space-y-1">
+                                    ${timelineHtml}
+                                </div>
+                            </div>
+                            <!-- Mini Map Lokasi Aduan -->
+                            <div class="pt-2">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Peta Titik Kejadian:</span>
+                                <div id="${mapId}" class="w-full h-32 rounded-xl border border-slate-200"></div>
+                            </div>
                         </div>
                     </div>
                 `;
-            }).join('');
+                container.appendChild(card);
+
+                setTimeout(() => {
+                    const lat = t.lat || SORONG_CENTER[0];
+                    const lng = t.lng || SORONG_CENTER[1];
+                    const miniMap = L.map(mapId, { zoomControl: false, dragging: false }).setView([lat, lng], 14);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
+                    L.marker([lat, lng]).addTo(miniMap).bindPopup(t.id);
+                }, 100);
+            });
         }
 
-        function searchTicket() {
-            const queryId = document.getElementById('searchTicketInput').value.trim().toUpperCase();
-            const container = document.getElementById('searchResultContainer');
-            
-            if (!queryId) {
-                container.classList.add('hidden');
+        // Modal Admin Toggle
+        function toggleAdminModal() {
+            const modal = document.getElementById('admin-modal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                renderAdminTable();
+                initAdminMap();
+            }
+        }
+
+        // Filter Tabel Admin
+        function filterAdminTable(type) {
+            currentAdminFilter = type;
+            document.getElementById('btn-filter-all').className = type === 'ALL' ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200';
+            document.getElementById('btn-filter-menunggu').className = type === 'Menunggu Verifikasi' ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200';
+            document.getElementById('btn-filter-proses').className = type === 'Proses Perbaikan' ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200';
+            document.getElementById('btn-filter-selesai').className = type === 'Selesai' ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200';
+            renderAdminTable();
+        }
+
+        // Render Tabel Admin Petugas
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = "";
+
+            let filtered = ticketsData;
+            if (currentAdminFilter !== 'ALL') {
+                filtered = ticketsData.filter(t => t.status === currentAdminFilter);
+            }
+
+            document.getElementById('cnt-all').innerText = ticketsData.length;
+            document.getElementById('cnt-menunggu').innerText = ticketsData.filter(t => t.status === 'Menunggu Verifikasi').length;
+            document.getElementById('cnt-proses').innerText = ticketsData.filter(t => t.status === 'Proses Perbaikan' || t.status === 'Penugasan Tim Teknis').length;
+            document.getElementById('cnt-selesai').innerText = ticketsData.filter(t => t.status === 'Selesai').length;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400">Tidak ada aduan dengan filter ini.</td></tr>`;
                 return;
             }
 
-            const complaints = getStoredComplaints();
-            const found = complaints.find(c => c.id.toUpperCase() === queryId);
-
-            container.classList.remove('hidden');
-            if (!found) {
-                container.innerHTML = `<div class="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs border border-rose-200">Tiket dengan nomor <strong>${queryId}</strong> tidak ditemukan.</div>`;
-                return;
-            }
-
-            let badgeColor = "bg-amber-100 text-amber-800";
-            if (found.status === 'Proses') badgeColor = "bg-blue-100 text-blue-800";
-            if (found.status === 'Selesai') badgeColor = "bg-emerald-100 text-emerald-800";
-
-            container.innerHTML = `
-                <div class="p-3.5 bg-blue-50 rounded-xl border border-blue-200 text-xs space-y-2">
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-blue-800 text-sm">${found.id}</span>
-                        <span class="px-2 py-0.5 rounded-full font-semibold ${badgeColor}">${found.status}</span>
-                    </div>
-                    <p><strong>Kendala:</strong> ${found.issue}</p>
-                    <p><strong>Wilayah:</strong> ${found.district} (${found.address})</p>
-                    <p><strong>Keterangan:</strong> ${found.desc}</p>
-                    <p class="text-[11px] text-slate-500 pt-1 border-t border-blue-200">Tanggal Laporan: ${found.date}</p>
-                </div>
-            `;
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-cyan-600">${t.id}</td>
+                    <td class="p-3">
+                        <span class="font-semibold text-slate-800 block">${t.nama}</span>
+                        <span class="text-[10px] text-slate-400 block">${t.hp}</span>
+                    </td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-800">
+                            ${t.jenis}
+                        </span>
+                    </td>
+                    <td class="p-3">
+                        <span class="text-[11px] text-slate-600 truncate block max-w-[160px]" title="${t.lokasi}">${t.lokasi}</span>
+                    </td>
+                    <td class="p-3 text-slate-500">${t.tanggal.split(' ')[0]}</td>
+                    <td class="p-3 font-bold text-slate-700">${t.status}</td>
+                    <td class="p-3 text-right space-x-1">
+                        <select onchange="updateStatusAdmin('${t.id}', this.value)" class="px-2 py-1 rounded bg-slate-100 border border-slate-200 text-xs font-semibold focus:outline-none">
+                            <option value="" disabled selected>Ubah Status</option>
+                            <option value="Menunggu Verifikasi">Menunggu Verifikasi</option>
+                            <option value="Penugasan Tim Teknis">Penugasan Tim Teknis</option>
+                            <option value="Proses Perbaikan">Proses Perbaikan</option>
+                            <option value="Selesai">Selesai</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
+        // Perbarui Status Pengaduan oleh Petugas
+        function updateStatusAdmin(ticketId, newStatus) {
+            const ticket = ticketsData.find(t => t.id === ticketId);
+            if (ticket) {
+                ticket.status = newStatus;
+                ticket.timeline.push({
+                    time: getCurrentDateTime(),
+                    status: `Status Diperbarui Petugas: ${newStatus}`
+                });
+                saveTickets(ticketsData);
+                renderAdminTable();
+                initAdminMap();
+                showToast(`Status Tiket ${ticketId} diperbarui: ${newStatus}`);
+            }
+        }
+
+        // Reset Data Sampel
+        function resetDefaultData() {
+            localStorage.removeItem('uptd_sorong_aduan_v3');
+            ticketsData = getStoredTickets();
+            saveTickets(ticketsData);
+            renderAdminTable();
+            initAdminMap();
+            showToast("Data sampel aduan berhasil diperbarui.");
+        }
+
+        // Update Statistik Beranda
+        function updateStatistics() {
+            const total = ticketsData.length;
+            const menunggu = ticketsData.filter(t => t.status === 'Menunggu Verifikasi').length;
+            const proses = ticketsData.filter(t => t.status.includes('Proses') || t.status.includes('Penugasan')).length;
+            const selesai = ticketsData.filter(t => t.status === 'Selesai').length;
+
+            document.getElementById('stat-total').innerText = 85 + total;
+            document.getElementById('stat-menunggu').innerText = menunggu;
+            document.getElementById('stat-proses').innerText = 5 + proses;
+            document.getElementById('stat-selesai').innerText = 80 + selesai;
+        }
+
+        // Accordion FAQ Toggle
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            const icon = document.getElementById(`icon-${id}`);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                el.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        // Inisialisasi Aplikasi Saat Memuat
         window.onload = function() {
-            renderPublicComplaints();
+            updateStatistics();
+            renderTrackingResults();
         };
     </script>
 </body>
 </html>
+
